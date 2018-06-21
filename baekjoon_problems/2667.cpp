@@ -4,7 +4,7 @@
 using namespace std;
 
 int dx[4] = {1,-1,0,0};
-int dy[4] = {0,0,1,-1};증
+int dy[4] = {0,0,1,-1};
 
 int group[25][25];
 int arr[25][25];
@@ -17,7 +17,7 @@ void dfs(int i,int j){
 
 	group_cnt++; //각 단지마다 값
 
-	for(int k=0;k<4;k++)	//상하좌우 방문할지 반복문 사용해서 검
+	for(int k=0;k<4;k++)	//상하좌우 방문할지 반복문 사용해서 검증
 	{
 		int x,y;
 		x = i+dx[k];
