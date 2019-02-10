@@ -1,58 +1,95 @@
-#include<queue>
-#include<cstdlib>
-#include<cassert>
-#include<cstdio>
-#include<iostream>
-#include<string>
-#include<vector>
+#include <stdio.h>
+#include <iostream>
+#include <string.h>
+#include <string>
+#include <vector>
+#include <algorithm>
 using namespace std;
 
-struct RNG {
-	int seed, a, b;
-	RNG(int _a, int _b) : a(_a), b(_b), seed(1983) {}
-	int next() {
-		int ret = seed;
-		seed = ((seed * (long long)a) + b) % 20090711;
-		return ret;
-	}
-};
+vector<vector<int> >adj;
+vector <int>seen, order;
 
-int runningMedian2(int n, RNG rng) {
-	priority_queue<int, vector<int>, less<int> > maxHeap;
-	priority_queue<int, vector<int>, greater<int> > minHeap;
-	int ret = 0;
-	// 반복문 불변 조건:
-	// 1. maxHeap 의 크기는 minHeap 의 크기와 같거나 1 더 크다
-	// 2. maxHeap.top() <= minHeap.top()
-	for(int cnt = 1; cnt <= n; ++cnt) {
-		// 우선 1번 불변 조건부터 만족시킨다
-		if(maxHeap.size() == minHeap.size())
-			maxHeap.push(rng.next());
-		else
-			minHeap.push(rng.next());
-		// 2번 불변 조건이 깨졌을 경우 복구하자
-		if(!minHeap.empty() && !maxHeap.empty() &&
-				minHeap.top() < maxHeap.top()) {
-			int a = maxHeap.top(), b = minHeap.top();
-			maxHeap.pop(); minHeap.pop();
-			maxHeap.push(b);
-			minHeap.push(a);
+void dfs(int here) {
+	seen[here] = 1;
+	for (int there = 0; there < adj.size(); there++) {
+		if (adj[here][there] && !seen[there]) {
+			dfs(there);
 		}
-		ret = (ret + maxHeap.top()) % 20090711;
 	}
-	return ret;
+	order.push_back(here);
+}
+
+vector <int> topologicalSort() {
+	int n = adj.size();
+	seen = vector<int>(n, 0);
+	order.clear();
+
+	for (int i = 0; i < n; i++) {
+		if (!seen[i]) dfs(i);
+	}
+
+	reverse(order.begin(), order.end());
+
+	for (int i = 0; i < n; i++) {
+		for (int j = i + 1; j < n; j++) {
+			if (adj[order[j]][order[i]]) {
+				return vector<int>();
+			}
+		}
+	}
+
+	return order;
+}
+
+void makeGraph(vector<string>& words) {
+
+	adj = vector<vector<int> > (26, vector<int>(26, 0));
+
+	for (int j = 1; j < words.size(); j++) {
+		int i = j - 1;
+		int len = min(words[i].size(), words[j].size());
+
+		for (int k = 0; k < len; k++) {
+			if (words[i][k] != words[j][k]) {
+				int a = words[i][k] - 'a';
+				int b = words[j][k] - 'a';
+				adj[a][b] = 1;
+				break;
+			}
+
+		}
+	}
 }
 
 int main() {
+	vector<int>out;
+
 	int cases;
 	cin >> cases;
-	for(int cc = 0; cc < cases; ++cc) {
-		int n;
-		unsigned a, b;
-		cin >> n >> a >> b;
-		RNG rng1(a,b), rng2(a,b);
-			int c = runningMedian2(n, rng2);
-			printf("%d\n",c);
+
+	while (cases--) {
+		int num;
+		cin >> num;
+
+		vector <string> words(num);
+		for (int i = 0; i < num; i++)
+			cin >> words[i];
+
+		makeGraph(words);
+		out=topologicalSort();
+
+		if (out.empty()) {
+			cout << "INVALID HYPOTHESIS" << endl;
+		}
+		else {
+			for (int i = 0; i < out.size(); i++) {
+				cout << (char)(out[i] + 'a');
+			}
+			cout << endl;
+		}
 	}
+
+	return 0;
 }
+
 
